@@ -14,4 +14,3 @@ fun main() {
 
     println("The depth increases $increases times")
 }
-
