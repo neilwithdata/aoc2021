@@ -1,7 +1,7 @@
 import java.io.File
 
 fun main() {
-    val fishCount = IntArray(9) { 0 }
+    val fishCount = LongArray(9) { 0 }
 
     File("data/day06_input.txt")
         .readText()
@@ -12,7 +12,7 @@ fun main() {
             fishCount[it]++
         }
 
-    repeat(80) {
+    repeat(256) {
         val newCount = fishCount[0]
         for (i in 0..7) {
             fishCount[i] = fishCount[i + 1]
