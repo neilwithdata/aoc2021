@@ -1,10 +1,21 @@
 import java.io.File
 
+private fun MutableMap<String, Long>.increaseCountForKey(key: String, inc: Long) {
+    this[key] = this.getOrDefault(key, 0L) + inc
+}
+
 fun main() {
     val input = File("data/day14_input.txt")
         .readLines()
 
     val polymer = input.first()
+
+    var pairs = buildMap {
+        for (index in 0 until polymer.lastIndex) {
+            val pair = polymer.substring(index, index + 2)
+            this.increaseCountForKey(pair, 1)
+        }
+    }
 
     val rules = input.drop(2)
         .takeWhile { it.isNotBlank() }
@@ -13,28 +24,38 @@ fun main() {
             match to insert
         }
 
-    var result = polymer
-    repeat(10) {
-        result = step(result, rules)
-    }
+    val letterCounts = polymer
+        .groupingBy { it.toString() }.eachCount()
+        .mapValues { it.value.toLong() }
+        .toMutableMap()
 
-    val counts = result.groupingBy { it }.eachCount()
-    val mostCommon = counts.maxOf { it.value }
-    val leastCommon = counts.minOf { it.value }
+    repeat(40) {
+        val newPairs = mutableMapOf<String, Long>()
 
-    println(mostCommon - leastCommon)
-}
+        for ((pair, count) in pairs) {
+            if (pair in rules.keys) {
+                // Two new pairs are created
+                val newChar = rules[pair]!!
 
-private fun step(polymer: String, rules: Map<String, String>): String = buildString {
-    append(polymer.first())
+                val newPair1 = "${pair[0]}${newChar}"
+                newPairs.increaseCountForKey(newPair1, count)
 
-    for (i in 1..polymer.lastIndex) {
-        val pair = polymer.substring(i - 1, i + 1)
+                val newPair2 = "${newChar}${pair[1]}"
+                newPairs.increaseCountForKey(newPair2, count)
 
-        if (pair in rules) {
-            append(rules[pair])
+                letterCounts.increaseCountForKey(newChar, count)
+            } else {
+                newPairs.increaseCountForKey(pair, count)
+            }
         }
 
-        append(polymer[i])
+        pairs = newPairs.toMap()
     }
+
+    val mostCommon = requireNotNull(letterCounts.maxByOrNull { it.value })
+    val leastCommon = requireNotNull(letterCounts.minByOrNull { it.value })
+
+    println(mostCommon)
+    println(leastCommon)
+    println(mostCommon.value - leastCommon.value)
 }
