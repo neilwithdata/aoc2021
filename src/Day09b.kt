@@ -1,6 +1,6 @@
 import java.io.File
 
-data class Location(val row: Int, val col: Int) {
+private data class Location(val row: Int, val col: Int) {
     val adjacentLocations
         get() = listOf(
             Location(row - 1, col),
