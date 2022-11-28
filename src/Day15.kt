@@ -11,14 +11,54 @@ data class Location(val row: Int, val col: Int) {
         )
 }
 
-class Cavern(input: List<String>) {
-    private val size = input.count()
+class Cavern(input: List<String>, sizeFactor: Int = 1) {
+    private val originalSize = input.count()
+
+    private val size = originalSize * sizeFactor
     private val endLocation = Location(size - 1, size - 1)
 
     private val grid = Array(size) { row ->
         Array(size) { col ->
-            input[row][col].digitToInt()
+            if (row < originalSize && col < originalSize) {
+                input[row][col].digitToInt()
+            } else {
+                0
+            }
         }
+    }
+
+    init {
+        for (row in 0 until sizeFactor) {
+            for (col in 0 until sizeFactor) {
+                initGridBlock(row, col)
+            }
+        }
+    }
+
+    private fun initGridBlock(row: Int, col: Int) {
+        if (row == 0 && col == 0)
+            return // already initialized
+
+        val fromOrigin = if (col == 0) {
+            Location((row - 1) * originalSize, 0) // above
+        } else {
+            Location(row * originalSize, (col - 1) * originalSize) // to the left
+        }
+
+        val toOrigin = Location(row * originalSize, col * originalSize)
+
+        // Now copy all the values - incrementing and wrapping if necessary
+        for (dx in 0 until originalSize) {
+            for (dy in 0 until originalSize) {
+                var next = grid[fromOrigin.row + dy][fromOrigin.col + dx] + 1
+                if (next == 10) {
+                    next = 1
+                }
+
+                grid[toOrigin.row + dy][toOrigin.col + dx] = next
+            }
+        }
+
     }
 
     // A* path search
@@ -70,18 +110,17 @@ class Cavern(input: List<String>) {
                 appendLine()
             }
         }
-
-    companion object {
-        fun fromFile(filename: String): Cavern {
-            val input = File(filename).readLines()
-            return Cavern(input)
-        }
-    }
 }
 
 fun main() {
-    val cavern = Cavern.fromFile("data/day15_input.txt")
-    println(cavern)
+    val input = File("data/day15_input.txt")
+        .readLines()
 
+    // Part 1
+    val cavern = Cavern(input, 1)
     println(cavern.findLowestRiskPath())
+
+    // Part 2
+    val largerCavern = Cavern(input, 5)
+    println(largerCavern.findLowestRiskPath())
 }
